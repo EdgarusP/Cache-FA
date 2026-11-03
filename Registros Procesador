@@ -1,0 +1,66 @@
+library IEEE;
+use IEEE.STD_LOGIC_1164.ALL;
+
+entity cache_registros_req is
+
+    port (
+        clock : in std_logic;
+        reset : in std_logic;
+        capturar : in std_logic;
+        req_addr : in std_logic_vector(8 downto 0);
+        req_write : in std_logic;
+        req_wdata : in std_logic_vector(15 downto 0);
+        tag_req : out std_logic_vector(5 downto 0);
+        offset_req : out std_logic_vector(2 downto 0);
+        escritura_req : out std_logic;
+        dato_escritura_req :
+            out std_logic_vector(15 downto 0)
+    );
+
+end cache_registros_req;
+
+
+architecture Behavioral of cache_registros_req is
+
+    signal tag_reg : std_logic_vector(5 downto 0)
+        := (others => '0');
+
+    signal offset_reg : std_logic_vector(2 downto 0)
+        := (others => '0');
+
+    signal write_reg : std_logic := '0';
+
+    signal wdata_reg : std_logic_vector(15 downto 0)
+        := (others => '0');
+
+begin
+
+    tag_req <= tag_reg;
+    offset_req <= offset_reg;
+    escritura_req <= write_reg;
+    dato_escritura_req <= wdata_reg;
+
+    process(clock)
+    begin
+
+        if rising_edge(clock) then
+
+            if reset = '1' then
+
+                tag_reg <= (others => '0');
+                offset_reg <= (others => '0');
+                write_reg <= '0';
+                wdata_reg <= (others => '0');
+
+            elsif capturar = '1' then
+
+                tag_reg <= req_addr(8 downto 3);
+                offset_reg <= req_addr(2 downto 0);
+                write_reg <= req_write;
+                wdata_reg <= req_wdata;
+
+            end if;
+
+        end if;
+    end process;
+end Behavioral;
