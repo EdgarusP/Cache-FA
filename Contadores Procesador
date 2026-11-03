@@ -1,0 +1,60 @@
+library IEEE;
+use IEEE.STD_LOGIC_1164.ALL;
+use IEEE.NUMERIC_STD.ALL;
+
+entity cache_contadores is
+
+    port (
+        clock : in std_logic;
+        reset : in std_logic;
+        inc_acceso : in std_logic;
+        inc_fallo : in std_logic;
+        access_count :
+            out std_logic_vector(15 downto 0);
+            
+        miss_count :
+            out std_logic_vector(15 downto 0)
+    );
+
+end cache_contadores;
+
+architecture Behavioral of cache_contadores is
+
+    signal accesos : unsigned(15 downto 0)
+        := (others => '0');
+
+    signal fallos : unsigned(15 downto 0)
+        := (others => '0');
+
+begin
+
+    access_count <= std_logic_vector(accesos);
+    miss_count <= std_logic_vector(fallos);
+
+    process(clock)
+    begin
+
+        if rising_edge(clock) then
+
+            if reset = '1' then
+
+                accesos <= (others => '0');
+                fallos <= (others => '0');
+
+            else
+
+                if inc_acceso = '1' then
+
+                    accesos <= accesos + 1;
+
+                end if;
+
+                if inc_fallo = '1' then
+
+                    fallos <= fallos + 1;
+
+                end if;
+            end if;
+        end if;
+    end process;
+end Behavioral
