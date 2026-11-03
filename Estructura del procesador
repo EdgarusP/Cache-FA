@@ -1,0 +1,132 @@
+library IEEE;
+use IEEE.STD_LOGIC_1164.ALL;
+
+entity cache_controller_estructura is
+
+    port (
+        clock : in std_logic;
+        reset : in std_logic;
+        req_valid : in std_logic;
+        req_write : in std_logic;
+        req_addr :
+            in std_logic_vector(8 downto 0);
+
+        req_wdata :
+            in std_logic_vector(15 downto 0);
+
+        resp_rdata :
+            out std_logic_vector(15 downto 0);
+
+        busy : out std_logic;
+        done : out std_logic;
+
+        access_count :
+            out std_logic_vector(15 downto 0);
+
+        miss_count :
+            out std_logic_vector(15 downto 0);
+
+        dram_addr :
+            out std_logic_vector(8 downto 0);
+
+        dram_data_in :
+            out std_logic_vector(15 downto 0);
+
+        dram_data_out :
+            in std_logic_vector(15 downto 0);
+
+        dram_enable : out std_logic
+    );
+
+end cache_controller_estructura;
+
+
+architecture Structural of cache_controller_estructura is
+
+    signal capturar : std_logic;
+    signal buscar : std_logic;
+    signal hit : std_logic;
+    signal inc_fallo : std_logic;
+    signal tag_req :
+        std_logic_vector(5 downto 0);
+
+    signal offset_req :
+        std_logic_vector(2 downto 0);
+
+    signal escritura_req : std_logic;
+
+    signal dato_escritura_req :
+        std_logic_vector(15 downto 0);
+
+
+begin
+
+    u_fsm : entity work.cache_fsm(Behavioral)
+
+        port map (
+
+            clock => clock,
+            reset => reset,
+            req_valid => req_valid,
+            capturar => capturar,
+            buscar => buscar,
+            busy => busy,
+            done => done
+
+        );
+
+    u_registros : entity work.cache_registros_req(Behavioral)
+
+        port map (
+
+            clock => clock,
+            reset => reset,
+            capturar => capturar,
+            req_addr => req_addr,
+            req_write => req_write,
+            req_wdata => req_wdata,
+            tag_req => tag_req,
+            offset_req => offset_req,
+            escritura_req => escritura_req,
+            dato_escritura_req => dato_escritura_req
+
+        );
+
+    u_memoria : entity work.cache_memoria(Behavioral)
+
+        port map (
+
+            clock => clock,
+            reset => reset,
+            limpiar_respuesta => capturar,
+            buscar => buscar,
+            tag_req => tag_req,
+            offset_req => offset_req,
+            escritura_req => escritura_req,
+            dato_escritura_req => dato_escritura_req,
+            hit => hit,
+            resp_rdata => resp_rdata
+
+        );
+
+    inc_fallo <= buscar and not hit;
+
+
+    u_contadores : entity work.cache_contadores(Behavioral)
+
+        port map (
+
+            clock => clock,
+            reset => reset,
+            inc_acceso => capturar,
+            inc_fallo => inc_fallo,
+            access_count => access_count,
+            miss_count => miss_count
+
+        );
+
+    dram_addr <= (others => '0');
+    dram_data_in <= (others => '0');
+    dram_enable <= '0';
+
+end Structural;
